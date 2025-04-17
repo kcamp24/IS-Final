@@ -1,0 +1,76 @@
+/* Background & Base Style */
+body {
+    background-color: #bc5fe7; /* light purple */
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #4a148c;
+    margin: 0;
+    padding: 0;
+    line-height: 1.6;
+}
+
+.header {
+    background-color: #ba68c8;
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+.navigation {
+    background-color: #ce93d8;
+    padding: 10px;
+    text-align: center;
+}
+
+.navigation a {
+    color: #4a148c;
+    text-decoration: none;
+    font-weight: bold;
+    margin: 0 10px;
+}
+
+.content {
+    padding: 20px;
+    background-color: #fff3e0;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+.image-gallery {
+    padding: 20px;
+    background-color: #ffe0b2;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+.image-gallery img {
+    margin: 10px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+}
+
+.video-container {
+    padding: 20px;
+    background-color: #f8bbd0;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+.tableau-container {
+    padding: 20px;
+    background-color: #d1c4e9;
+    margin: 20px;
+    border-radius: 10px;
+}
+
+.footer {
+    background-color: #ba68c8;
+    color: white;
+    text-align: center;
+    padding: 20px;
+    margin-top: 30px;
+}
+
+.emoji {
+    font-size: 1.5rem;
+}
+

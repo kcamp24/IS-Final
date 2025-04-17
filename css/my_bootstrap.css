@@ -1,0 +1,29 @@
+.my_special_text{
+    text-decoration: underline;
+}
+
+.my_text_
+
+.bg-primary {
+    background-color: #ab7dff !important;
+}
+
+.text-primary {
+    color: #ab7dff !important;
+}
+/* Light Purple Color Theme */
+.bg-primary {
+    background-color:#ab7dff !important; /* Light purple for navbar */
+}
+
+.text-primary {
+    color: #ab7dff !important; /* Light purple for name and dates */
+}
+
+a {
+    color: #ab7dff /* Light purple for links */
+}
+
+a:hover {
+    color: #ab7dff /* Slightly darker purple on hover */
+}

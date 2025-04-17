@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ice Cream Catch</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden; /* Prevent scroll bars */
+            font-family: 'Arial', sans-serif;
+            background-color: lightblue; /* Background for the whole page */
+        }
+
+        /* Start Screen Overlay */
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex; /* Use flexbox for centering - Initially visible */
+            justify-content: center;
+            align-items: center;
+            background-color: rgba(0, 0, 0, 0.6); /* Semi-transparent background */
+            z-index: 200; /* Highest z-index */
+            text-align: center;
+            color: white;
+        }
+
+        #start-screen .content {
+            padding: 40px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 15px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+            color: #333;
+        }
+
+         #start-screen h1 {
+             margin-bottom: 20px; /* Adjusted margin */
+             color: #FF69B4; /* Pink title */
+         }
+         #start-screen p {
+             margin-bottom: 20px; /* Added margin */
+         }
+         /* Optional: Add a place to show the last score */
+         #last-score {
+            margin-top: 15px;
+            margin-bottom: 25px; /* Adjusted margin */
+            font-size: 18px;
+            color: #555;
+            min-height: 22px; /* Reserve space so layout doesn't jump */
+         }
+
+        #play-button {
+            display: inline-block;
+            padding: 15px 35px;
+            font-size: 24px;
+            color: white;
+            background-color: #4CAF50; /* Green */
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 25px; /* Increased margin */
+        }
+         #play-button:hover {
+             background-color: #45a049;
+         }
+
+         /* Styling for the links on the start screen */
+         .start-screen-link { /* Changed from ID to class */
+             display: block; /* Make each link its own line */
+             margin-top: 10px; /* Space between links */
+             font-size: 16px;
+             color: #007bff;
+             text-decoration: none;
+         }
+         .start-screen-link:hover { /* Changed from ID to class */
+             text-decoration: underline;
+         }
+
+
+        /* Game Area - Initially hidden */
+        #game-area {
+            display: none; /* Hide game area initially */
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            background-color: lightblue; /* Match body background */
+            overflow: hidden; /* Keep elements inside */
+            z-index: 10; /* Below overlays */
+        }
+
+        #grass {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 50px;
+            background-color: #2E8B57; /* Seagreen grass */
+            background-image: linear-gradient(to right, #2E8B57 5px, #3CB371 5px, #3CB371 10px); /* Simple grass blade effect */
+            background-size: 10px 10px;
+            z-index: 15;
+        }
+
+        #cone {
+            position: absolute;
+            bottom: 40px; /* Sits just above the grass */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 0;
+            height: 0;
+            border-left: 35px solid transparent; /* Triangle shape */
+            border-right: 35px solid transparent;
+            border-top: 80px solid #D2B48C; /* Cone color (Tan) */
+            z-index: 20;
+            cursor: pointer; /* Indicate it's movable */
+        }
+
+        .scoop { /* Style for actively falling scoops */
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%; /* Scoop-like shape */
+            left: 50%; /* Initial horizontal center */
+            transform: translateX(-50%);
+            top: -70px; /* Start above the screen */
+            z-index: 18;
+            transition: top 0.05s linear, left 0.05s linear; /* Smooth falling */
+        }
+
+        .stacked-scoop { /* Style for caught scoops */
+            position: absolute;
+            width: 60px;
+            height: 60px;
+            border-radius: 50% 50% 30% 30% / 60% 60% 40% 40%; /* Match falling scoop */
+            transform: translateX(-50%); /* Keep centered on cone */
+            z-index: 19; /* Above falling, increases */
+        }
+
+
+        #score {
+            position: absolute;
+            top: 15px;
+            left: 15px;
+            font-size: 28px;
+            color: white;
+            text-shadow: 1px 1px 2px black;
+            z-index: 30; /* Above game elements */
+        }
+
+        /* Simple Clouds */
+        .cloud {
+            position: absolute;
+            background: white;
+            border-radius: 50%;
+            opacity: 0.85;
+            z-index: 1; /* Behind everything else in game-area */
+            box-shadow: 10px 10px 5px rgba(0, 0, 0, 0.1);
+        }
+        .cloud.c1 { top: 10%; left: 15%; width: 120px; height: 80px; }
+        .cloud.c2 { top: 20%; left: 70%; width: 150px; height: 100px; }
+        .cloud.c3 { top: 5%; left: 40%; width: 100px; height: 60px; }
+        .cloud::before, .cloud::after { content: ''; position: absolute; background: white; border-radius: 50%; }
+        .cloud.c1::before { width: 80px; height: 80px; top: -30px; left: 20px; }
+        .cloud.c1::after  { width: 60px; height: 60px; top: -15px; right: 15px; }
+        .cloud.c2::before { width: 100px; height: 100px; top: -40px; left: 30px; }
+        .cloud.c2::after  { width: 80px; height: 80px; top: -20px; right: 20px; }
+        .cloud.c3::before { width: 60px; height: 60px; top: -25px; left: 15px; }
+        .cloud.c3::after  { width: 50px; height: 50px; top: -10px; right: 10px; }
+
+    </style>
+</head>
+<body>
+    <div id="start-screen">
+        <div class="content">
+            <h1>Ice Cream Catch!</h1>
+            <p>Move your mouse to catch the falling scoops!</p>
+            <div id="last-score"></div> <button id="play-button">Play Now</button>
+            <a class="start-screen-link" href="/index.html">Back to Index</a>
+            <a class="start-screen-link" href="../pages/scratch_page.html">Learn Fun Facts About Ice Cream!</a>
+        </div>
+    </div>
+
+    <div id="game-area">
+        <div id="score">Scoops: 0</div>
+
+        <div class="cloud c1"></div>
+        <div class="cloud c2"></div>
+        <div class="cloud c3"></div>
+
+        <div id="cone"></div>
+        <div id="grass"></div>
+
+    </div>
+
+    <script>
+        // Get references to elements
+        const startScreen = document.getElementById('start-screen');
+        const playButton = document.getElementById('play-button');
+        const gameArea = document.getElementById('game-area');
+        const cone = document.getElementById('cone');
+        const scoreDisplay = document.getElementById('score');
+        const grass = document.getElementById('grass');
+        const lastScoreDisplay = document.getElementById('last-score'); // Reference for optional score display
+
+        // --- Game State Variables ---
+        let score = 0;
+        let lastScore = 0; // Store the score from the last game
+        let stackedScoops = [];
+        let fallingScoops = [];
+        let fallSpeed = 2;
+        let spawnDelay = 2500;
+        let gameLoopInterval = null;
+        let spawnInterval = null;
+        let isGameOver = false;
+        let gameAreaWidth = 0;
+        let gameAreaHeight = 0;
+        const grassHeight = 50;
+        const coneHeight = 80;
+        const scoopHeight = 60;
+        const scoopWidth = 60;
+        const coneTopWidth = 70;
+        const overlapFactor = 0.65;
+
+        // --- Possible Scoop Colors ---
+        const scoopColors = [
+            '#FFC0CB', // Pink
+            '#90EE90', // Light Green
+            '#FFFFE0', // Light Yellow (Vanilla)
+            '#DDA0DD', // Plum (Purple)
+            '#FFA07A', // Light Salmon (Orange)
+            '#FFFFFF'  // White
+        ];
+
+        // --- Game Functions ---
+
+        function getRandomColor() {
+            return scoopColors[Math.floor(Math.random() * scoopColors.length)];
+        }
+
+        function spawnScoop() {
+            if (isGameOver) return;
+
+            const newScoop = document.createElement('div');
+            newScoop.classList.add('scoop');
+            newScoop.style.backgroundColor = getRandomColor();
+
+            const maxLeft = gameAreaWidth - scoopWidth;
+            const randomLeft = Math.random() * (maxLeft - scoopWidth) + scoopWidth / 2;
+            newScoop.style.left = `${randomLeft}px`;
+            newScoop.style.top = `-${scoopHeight}px`;
+
+            gameArea.appendChild(newScoop);
+            fallingScoops.push(newScoop);
+        }
+
+        function moveCone(event) {
+            if (isGameOver) return;
+
+            const gameAreaRect = gameArea.getBoundingClientRect();
+            let mouseX = event.clientX - gameAreaRect.left;
+
+            const coneHalfWidth = coneTopWidth / 2;
+            mouseX = Math.max(coneHalfWidth, mouseX);
+            mouseX = Math.min(gameAreaWidth - coneHalfWidth, mouseX);
+
+            cone.style.left = `${mouseX}px`;
+
+            stackedScoops.forEach(scoop => {
+                scoop.style.left = `${mouseX}px`;
+            });
+        }
+
+        function updateGame() {
+            if (isGameOver) return;
+
+            const coneRect = cone.getBoundingClientRect();
+            let catchSurfaceTop;
+            let catchSurfaceCenterX;
+
+            if (stackedScoops.length === 0) {
+                catchSurfaceTop = coneRect.top;
+                catchSurfaceCenterX = coneRect.left + coneRect.width / 2;
+            } else {
+                const topScoop = stackedScoops[stackedScoops.length - 1];
+                 if(topScoop?.getBoundingClientRect) {
+                    const topScoopRect = topScoop.getBoundingClientRect();
+                    catchSurfaceTop = topScoopRect.top;
+                    catchSurfaceCenterX = parseFloat(topScoop.style.left);
+                 } else {
+                    catchSurfaceTop = coneRect.top;
+                    catchSurfaceCenterX = coneRect.left + coneRect.width / 2;
+                 }
+            }
+
+            for (let i = fallingScoops.length - 1; i >= 0; i--) {
+                const currentScoop = fallingScoops[i];
+                 if (!currentScoop) continue;
+
+                let currentTop = parseFloat(currentScoop.style.top);
+                currentTop += fallSpeed;
+                currentScoop.style.top = `${currentTop}px`;
+
+                const scoopRect = currentScoop.getBoundingClientRect();
+                const scoopBottom = scoopRect.top + scoopRect.height;
+                const scoopCenterX = scoopRect.left + scoopRect.width / 2;
+
+                const verticalCatchMargin = scoopHeight * 0.6;
+                const horizontalCatchMargin = coneTopWidth / 1.8;
+
+                if (scoopBottom >= catchSurfaceTop && scoopBottom <= catchSurfaceTop + verticalCatchMargin &&
+                    Math.abs(scoopCenterX - catchSurfaceCenterX) < horizontalCatchMargin) {
+
+                    // --- SCOOP CAUGHT ---
+                    score++;
+                    scoreDisplay.textContent = `Scoops: ${score}`;
+
+                    currentScoop.classList.remove('scoop');
+                    currentScoop.classList.add('stacked-scoop');
+
+                    const stackHeight = stackedScoops.length;
+                    const scoopBottomPosition = grassHeight + coneHeight + (stackHeight * scoopHeight * overlapFactor);
+                    currentScoop.style.bottom = `${scoopBottomPosition}px`;
+                    currentScoop.style.top = 'auto';
+                    currentScoop.style.left = cone.style.left;
+                    currentScoop.style.zIndex = 19 + stackHeight;
+
+                    stackedScoops.push(currentScoop);
+                    fallingScoops.splice(i, 1);
+
+                    // Increase difficulty
+                    fallSpeed += 0.15;
+                    spawnDelay = Math.max(400, spawnDelay - 50);
+                    clearInterval(spawnInterval);
+                    spawnInterval = setInterval(spawnScoop, spawnDelay);
+
+                    // Update catch surface for next iteration
+                    const newTopScoopRect = currentScoop.getBoundingClientRect();
+                    catchSurfaceTop = newTopScoopRect.top;
+                    catchSurfaceCenterX = parseFloat(currentScoop.style.left);
+
+                } else if (currentTop + scoopHeight >= gameAreaHeight - grassHeight) {
+                    // --- SCOOP MISSED ---
+                    currentScoop.remove();
+                    fallingScoops.splice(i, 1);
+                    endGame(); // Call the modified endGame function
+                    return; // Exit loop and function
+                }
+            } // End loop through falling scoops
+        }
+
+        // Modified endGame function
+        function endGame() {
+            if (isGameOver) return;
+            isGameOver = true;
+
+            // Stop game loops and listeners
+            clearInterval(gameLoopInterval);
+            clearInterval(spawnInterval);
+            gameArea.removeEventListener('mousemove', moveCone);
+
+            // Store the final score
+            lastScore = score;
+
+            // Clean up remaining scoop elements from the DOM
+            fallingScoops.forEach(scoop => scoop?.remove());
+            fallingScoops = [];
+            stackedScoops.forEach(scoop => scoop?.remove());
+            stackedScoops = [];
+
+            // Hide game area
+            gameArea.style.display = 'none';
+
+            // Show start screen again
+            startScreen.style.display = 'flex'; // Use 'flex' as defined in CSS
+
+            // Optional: Display the last score on the start screen
+            if (lastScore > 0) {
+                 lastScoreDisplay.textContent = `Your last score: ${lastScore}`;
+            } else {
+                 lastScoreDisplay.textContent = ''; // Clear if score was 0
+            }
+
+        }
+
+        // Called only by Play button
+        function startGame() {
+            // Reset game state
+            isGameOver = false;
+            score = 0; // Reset score for the new game
+            fallSpeed = 2;
+            spawnDelay = 2500;
+            scoreDisplay.textContent = `Scoops: ${score}`; // Update display
+
+            // Clear old elements and intervals (redundant but safe)
+            clearInterval(gameLoopInterval);
+            clearInterval(spawnInterval);
+            fallingScoops.forEach(scoop => scoop?.remove());
+            fallingScoops = [];
+            stackedScoops.forEach(scoop => scoop?.remove());
+            stackedScoops = [];
+
+            // Reset cone position visually
+            cone.style.left = '50%';
+
+            // Ensure game area is visible and start screen is hidden
+            gameArea.style.display = 'block';
+            startScreen.style.display = 'none';
+
+            // Get dimensions AFTER game area is visible
+            gameAreaWidth = gameArea.offsetWidth;
+            gameAreaHeight = gameArea.offsetHeight;
+
+            // Add mouse listener
+            gameArea.addEventListener('mousemove', moveCone);
+
+            // Start game loops
+            gameLoopInterval = setInterval(updateGame, 16);
+            spawnInterval = setInterval(spawnScoop, spawnDelay);
+        }
+
+
+        // --- Event Listener for Initial Play Button ---
+        playButton.addEventListener('click', startGame);
+
+
+        // --- Initial Setup on Load ---
+         window.addEventListener('resize', () => {
+            if (!isGameOver && gameArea.style.display === 'block') {
+                gameAreaWidth = gameArea.offsetWidth;
+                gameAreaHeight = gameArea.offsetHeight;
+            }
+         });
+
+    </script>
+
+</body>
+</html>
